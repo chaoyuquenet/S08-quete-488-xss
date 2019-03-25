@@ -14,17 +14,27 @@ describe('app', () => {
     describe('POST /messages', () => {
       describe('with non-empty content', () => {
         describe('with JavaScript code in personalWebsiteURL', () => {
-          it('responds with 401 error', async done => {
-            const response = await request(app).get('/');
-            expect(response.statusCode).toBe(401);
+          it('responds with error', async done => {
+            await agent
+              .post('/messages')
+              .send(
+                "content=test&personalWebsiteURL=javascript:alert('Hacked!');"
+              )
+              .expect('Content-Type', 'application/json; charset=utf-8')
+              .expect(400);
             done();
           });
         });
 
         describe('with HTTP URL in personalWebsiteURL', () => {
           it('responds with success', async done => {
-            const response = await request(app).get('/');
-            expect(response.statusCode).toBe(200);
+            await agent
+              .post('/messages')
+              .send(
+                'content=test&personalWebsiteURL=https://fr.wikipedia.org/wiki/Cross-site_scripting'
+              )
+              .expect('Content-Type', 'application/json; charset=utf-8')
+              .expect(201);
             done();
           });
         });

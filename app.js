@@ -5,6 +5,11 @@ const cache = require('memory-cache');
 const passport = require('passport');
 const { check, validationResult } = require('express-validator/check');
 
+require('./authentication-setup');
+const { createMessage, getMessages, seedUsers } = require('./data-interface');
+global.cache = cache;
+seedUsers();
+
 const app = express()
   .use(bodyParser.urlencoded({ extended: true }))
   .use(
@@ -23,6 +28,19 @@ const getErrorAsObject = errors =>
     return errorObject;
   }, {});
 
+// Requests that do not require authentication
+app
+  .get('/messages', (_, res) => res.send({ messages: getMessages() }))
+  .post('/login', (req, res, next) => {
+    passport.authenticate('local', (error, user) => {
+      if (error) {
+        return res.status(401).send({ error });
+      }
+      return req.login(user, _ => res.redirect('/me'));
+    })(req, res, next);
+  });
+
+// Requests that require authentication
 app
   .use((req, res, next) => {
     if (req.isAuthenticated()) {
