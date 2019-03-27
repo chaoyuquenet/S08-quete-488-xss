@@ -16,7 +16,8 @@ const app = express()
     session({
       secret: 'secretKeyThatShouldBeInEnvironmentConfig',
       resave: false,
-      saveUninitialized: true
+      saveUninitialized: true,
+      cookie: { sameSite: true }
     })
   )
   .use(passport.initialize())
